@@ -1,0 +1,32 @@
+# Node.js
+node_modules/
+npm-debug.log*
+*.log
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.original
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*~
+cookies.txt
+
+# Logs
+*.log
+server*.log
+proxy.log

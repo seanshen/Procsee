@@ -1,0 +1,12 @@
+{
+  "name": "node-proxy",
+  "version": "1.0.0",
+  "description": "Round-robin reverse proxy with sticky session support via JSESSIONID",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "dependencies": {
+    "http-proxy": "^1.18.1"
+  }
+}

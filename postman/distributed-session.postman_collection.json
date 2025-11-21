@@ -1,0 +1,401 @@
+{
+    "info": {
+        "_postman_id": "distributed-session-demo",
+        "name": "Distributed Session Demo",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Set testAttr = 100",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Session ID returned\", function () {",
+                            "    pm.expect(jsonData.sessionId).to.not.be.undefined;",
+                            "});",
+                            "var serverPort = pm.response.headers.get(\"SERVER_PORT\");",
+                            "pm.test(\"SERVER_PORT = \" + serverPort, function () {",
+                            "    pm.response.to.have.header(\"SERVER_PORT\");",
+                            "});",
+                            "console.log(\"SERVER_PORT: \" + pm.response.headers.get(\"SERVER_PORT\"));",
+                            "var sessionId = pm.response.headers.get(\"session-id\");",
+                            "console.log(\"session-id: \" + sessionId);",
+                            "pm.test(sessionId, function () {",
+                            "    pm.response.to.have.header(\"session-id\");",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "var template = `",
+                            "<style>",
+                            "    table {",
+                            "        font-family: arial, sans-serif;",
+                            "        border-collapse: collapse;",
+                            "        width: 100%;",
+                            "    }",
+                            "    td, th {",
+                            "        border: 1px solid #dddddd;",
+                            "        text-align: left;",
+                            "        padding: 8px;",
+                            "    }",
+                            "    tr:nth-child(even) {",
+                            "        background-color: #dddddd;",
+                            "    }",
+                            "</style>",
+                            "<table>",
+                            "    <tr>",
+                            "        <th>Key</th>",
+                            "        <th>Value</th>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Session ID</td>",
+                            "        <td>{{sessionId}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Test Attribute</td>",
+                            "        <td>{{testAttr}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Body)</td>",
+                            "        <td>{{serverPortBody}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Header)</td>",
+                            "        <td>{{serverPortHeader}}</td>",
+                            "    </tr>",
+                            "</table>",
+                            "`;",
+                            "pm.visualizer.set(template, {",
+                            "    sessionId: jsonData.sessionId,",
+                            "    testAttr: jsonData.testAttr,",
+                            "    serverPortBody: jsonData.serverPort,",
+                            "    serverPortHeader: pm.response.headers.get(\"SERVER_PORT\")",
+                            "});",
+                            "setTimeout(function(){}, 2000);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"testAttr\": 100\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/session",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "session"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "2. Get testAttr (Expect 100)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Value is 100\", function () {",
+                            "    pm.expect(jsonData.testAttr).to.eql(100);",
+                            "});",
+                            "console.log(\"Served by port: \" + jsonData.serverPort);",
+                            "var serverPort = pm.response.headers.get(\"SERVER_PORT\");",
+                            "pm.test(\"SERVER_PORT = \" + serverPort, function () {",
+                            "    pm.response.to.have.header(\"SERVER_PORT\");",
+                            "});",
+                            "console.log(\"SERVER_PORT: \" + pm.response.headers.get(\"SERVER_PORT\"));",
+                            "var sessionId = pm.response.headers.get(\"session-id\");",
+                            "console.log(\"session-id: \" + sessionId);",
+                            "pm.test(sessionId, function () {",
+                            "    pm.response.to.have.header(\"session-id\");",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "var template = `",
+                            "<style>",
+                            "    table {",
+                            "        font-family: arial, sans-serif;",
+                            "        border-collapse: collapse;",
+                            "        width: 100%;",
+                            "    }",
+                            "    td, th {",
+                            "        border: 1px solid #dddddd;",
+                            "        text-align: left;",
+                            "        padding: 8px;",
+                            "    }",
+                            "    tr:nth-child(even) {",
+                            "        background-color: #dddddd;",
+                            "    }",
+                            "</style>",
+                            "<table>",
+                            "    <tr>",
+                            "        <th>Key</th>",
+                            "        <th>Value</th>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Session ID</td>",
+                            "        <td>{{sessionId}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Test Attribute</td>",
+                            "        <td>{{testAttr}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Body)</td>",
+                            "        <td>{{serverPortBody}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Header)</td>",
+                            "        <td>{{serverPortHeader}}</td>",
+                            "    </tr>",
+                            "</table>",
+                            "`;",
+                            "pm.visualizer.set(template, {",
+                            "    sessionId: jsonData.sessionId,",
+                            "    testAttr: jsonData.testAttr,",
+                            "    serverPortBody: jsonData.serverPort,",
+                            "    serverPortHeader: pm.response.headers.get(\"SERVER_PORT\")",
+                            "});",
+                            "setTimeout(function(){}, 2000);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/session",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "session"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "3. Set testAttr = 200",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var serverPort = pm.response.headers.get(\"SERVER_PORT\");",
+                            "pm.test(\"SERVER_PORT = \" + serverPort, function () {",
+                            "    pm.response.to.have.header(\"SERVER_PORT\");",
+                            "});",
+                            "console.log(\"SERVER_PORT: \" + pm.response.headers.get(\"SERVER_PORT\"));",
+                            "var sessionId = pm.response.headers.get(\"session-id\");",
+                            "console.log(\"session-id: \" + sessionId);",
+                            "pm.test(sessionId, function () {",
+                            "    pm.response.to.have.header(\"session-id\");",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "var template = `",
+                            "<style>",
+                            "    table {",
+                            "        font-family: arial, sans-serif;",
+                            "        border-collapse: collapse;",
+                            "        width: 100%;",
+                            "    }",
+                            "    td, th {",
+                            "        border: 1px solid #dddddd;",
+                            "        text-align: left;",
+                            "        padding: 8px;",
+                            "    }",
+                            "    tr:nth-child(even) {",
+                            "        background-color: #dddddd;",
+                            "    }",
+                            "</style>",
+                            "<table>",
+                            "    <tr>",
+                            "        <th>Key</th>",
+                            "        <th>Value</th>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Session ID</td>",
+                            "        <td>{{sessionId}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Test Attribute</td>",
+                            "        <td>{{testAttr}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Body)</td>",
+                            "        <td>{{serverPortBody}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Header)</td>",
+                            "        <td>{{serverPortHeader}}</td>",
+                            "    </tr>",
+                            "</table>",
+                            "`;",
+                            "pm.visualizer.set(template, {",
+                            "    sessionId: jsonData.sessionId,",
+                            "    testAttr: jsonData.testAttr,",
+                            "    serverPortBody: jsonData.serverPort,",
+                            "    serverPortHeader: pm.response.headers.get(\"SERVER_PORT\")",
+                            "});",
+                            "setTimeout(function(){}, 2000);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"testAttr\": 200\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/session",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "session"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "4. Get testAttr (Expect 200)",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "pm.test(\"Value is 200\", function () {",
+                            "    pm.expect(jsonData.testAttr).to.eql(200);",
+                            "});",
+                            "console.log(\"Served by port: \" + jsonData.serverPort);",
+                            "var serverPort = pm.response.headers.get(\"SERVER_PORT\");",
+                            "pm.test(\"SERVER_PORT = \" + serverPort, function () {",
+                            "    pm.response.to.have.header(\"SERVER_PORT\");",
+                            "});",
+                            "console.log(\"SERVER_PORT: \" + pm.response.headers.get(\"SERVER_PORT\"));",
+                            "var sessionId = pm.response.headers.get(\"session-id\");",
+                            "console.log(\"session-id: \" + sessionId);",
+                            "pm.test(sessionId, function () {",
+                            "    pm.response.to.have.header(\"session-id\");",
+                            "});",
+                            "var jsonData = pm.response.json();",
+                            "var template = `",
+                            "<style>",
+                            "    table {",
+                            "        font-family: arial, sans-serif;",
+                            "        border-collapse: collapse;",
+                            "        width: 100%;",
+                            "    }",
+                            "    td, th {",
+                            "        border: 1px solid #dddddd;",
+                            "        text-align: left;",
+                            "        padding: 8px;",
+                            "    }",
+                            "    tr:nth-child(even) {",
+                            "        background-color: #dddddd;",
+                            "    }",
+                            "</style>",
+                            "<table>",
+                            "    <tr>",
+                            "        <th>Key</th>",
+                            "        <th>Value</th>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Session ID</td>",
+                            "        <td>{{sessionId}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Test Attribute</td>",
+                            "        <td>{{testAttr}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Body)</td>",
+                            "        <td>{{serverPortBody}}</td>",
+                            "    </tr>",
+                            "    <tr>",
+                            "        <td>Server Port (Header)</td>",
+                            "        <td>{{serverPortHeader}}</td>",
+                            "    </tr>",
+                            "</table>",
+                            "`;",
+                            "pm.visualizer.set(template, {",
+                            "    sessionId: jsonData.sessionId,",
+                            "    testAttr: jsonData.testAttr,",
+                            "    serverPortBody: jsonData.serverPort,",
+                            "    serverPortHeader: pm.response.headers.get(\"SERVER_PORT\")",
+                            "});",
+                            "setTimeout(function(){}, 2000);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/session",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "session"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ]
+}
