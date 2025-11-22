@@ -30,3 +30,4 @@ cookies.txt
 *.log
 server*.log
 proxy.log
+recorded-collection-*.json
