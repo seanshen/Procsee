@@ -1,9 +1,62 @@
+const util = require('util');
+
+// Polyfill/Silence deprecated util._extend for http-proxy
+util._extend = function(origin, add) {
+    return Object.assign(origin || {}, add);
+};
+
 const http = require('http');
 const httpProxy = require('http-proxy');
 const fs = require('fs');
 
 const keepAliveAgent = new http.Agent({ keepAlive: true });
 const proxy = httpProxy.createProxyServer({ agent: keepAliveAgent });
+
+// Log request after response to capture session ID
+proxy.on('proxyRes', function (proxyRes, req, res) {
+    let sessionId = null;
+    // Try to get from request cookies (JSESSIONID or SESSION)
+    if (req.headers.cookie) {
+        let match = req.headers.cookie.match(/JSESSIONID=([^;]+)/);
+        if (match) {
+            sessionId = match[1];
+        } else {
+            match = req.headers.cookie.match(/SESSION=([^;]+)/);
+            if (match) {
+                // Decode base64 SESSION cookie to get actual session ID
+                try {
+                    sessionId = Buffer.from(match[1], 'base64').toString('utf-8');
+                } catch (e) {
+                    sessionId = match[1];
+                }
+            }
+        }
+    }
+    // If not, try to get from response cookies
+    if (!sessionId && proxyRes.headers['set-cookie']) {
+        const setCookies = proxyRes.headers['set-cookie'];
+        for (const cookie of setCookies) {
+            let match = cookie.match(/JSESSIONID=([^;]+)/);
+            if (match) {
+                sessionId = match[1];
+                break;
+            }
+            match = cookie.match(/SESSION=([^;]+)/);
+            if (match) {
+                // Decode base64 SESSION cookie to get actual session ID
+                try {
+                    sessionId = Buffer.from(match[1], 'base64').toString('utf-8');
+                } catch (e) {
+                    sessionId = match[1];
+                }
+                break;
+            }
+        }
+    }
+    
+    const method = req.method.substring(0, 3).toUpperCase();
+    console.log(`${sessionId || 'New'} ${req.targetPort} ${method} ${req.url}`);
+});
 const servers = [
     { target: 'http://localhost:8081' },
     { target: 'http://localhost:8082' },
@@ -140,7 +193,7 @@ const server = http.createServer((req, res) => {
     const targetPort = targetUrl.split(':')[2];
     res.setHeader('SERVER_PORT', targetPort);
 
-    console.log(`Proxying request to ${targetUrl} (Session: ${sessionId || 'New'})`);
+    req.targetPort = targetPort;
 
     // If recording, capture the request
     if (recording) {
