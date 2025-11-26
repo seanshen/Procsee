@@ -1,0 +1,516 @@
+{
+	"info": {
+		"_postman_id": "nested-session-test-001",
+		"name": "Nested Session Test",
+		"description": "Test deeply nested Java objects in HttpSession with Spring Session SaveMode.ALWAYS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Create Employee with Nested Objects",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains employee\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee).to.exist;",
+							"    pm.expect(jsonData.employee.name).to.equal(\"John Doe\");",
+							"});",
+							"",
+							"// Store session ID for subsequent requests",
+							"var setCookie = pm.response.headers.get(\"Set-Cookie\");",
+							"if (setCookie) {",
+							"    var sessionMatch = setCookie.match(/SESSION=([^;]+)/);",
+							"    if (sessionMatch) {",
+							"        pm.collectionVariables.set(\"sessionCookie\", sessionMatch[1]);",
+							"    }",
+							"}",
+							"",
+							"// Store original values for comparison",
+							"var jsonData = pm.response.json();",
+							"pm.collectionVariables.set(\"originalName\", jsonData.employee.name);",
+							"pm.collectionVariables.set(\"originalEmail\", jsonData.employee.contact.email);",
+							"pm.collectionVariables.set(\"originalCity\", jsonData.employee.company.contact.address.city);",
+							"",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 1001,\n  \"name\": \"John Doe\",\n  \"title\": \"Senior Developer\",\n  \"salary\": 95000.0,\n  \"contact\": {\n    \"phone\": \"555-1234\",\n    \"email\": \"john@example.com\",\n    \"address\": {\n      \"street\": \"123 Main St\",\n      \"city\": \"New York\",\n      \"state\": \"NY\",\n      \"zipCode\": \"10001\"\n    }\n  },\n  \"company\": {\n    \"name\": \"Tech Corp\",\n    \"industry\": \"Software\",\n    \"contact\": {\n      \"phone\": \"555-5678\",\n      \"email\": \"info@techcorp.com\",\n      \"address\": {\n        \"street\": \"456 Corporate Blvd\",\n        \"city\": \"San Francisco\",\n        \"state\": \"CA\",\n        \"zipCode\": \"94102\"\n      }\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Read Employee - Verify Initial State",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Employee exists in session\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.exists).to.be.true;",
+							"    pm.expect(jsonData.employee).to.exist;",
+							"});",
+							"",
+							"pm.test(\"All nested properties match original\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee.name).to.equal(pm.collectionVariables.get(\"originalName\"));",
+							"    pm.expect(jsonData.employee.contact.email).to.equal(pm.collectionVariables.get(\"originalEmail\"));",
+							"    pm.expect(jsonData.employee.company.contact.address.city).to.equal(pm.collectionVariables.get(\"originalCity\"));",
+							"});",
+							"",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Modify Level 1 Property (name)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Modification successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.equal(\"success\");",
+							"    pm.expect(jsonData.employee.name).to.equal(\"Jane Doe\");",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"expectedName\", \"Jane Doe\");",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"path\": \"name\", \"value\": \"Jane Doe\"}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee/nested",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee", "nested"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Verify Level 1 Modification Persisted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Level 1 property modification persisted\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee.name).to.equal(pm.collectionVariables.get(\"expectedName\"));",
+							"});",
+							"",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Modify Level 2 Property (contact.email)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Modification successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.equal(\"success\");",
+							"    pm.expect(jsonData.employee.contact.email).to.equal(\"jane@example.com\");",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"expectedEmail\", \"jane@example.com\");",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"path\": \"contact.email\", \"value\": \"jane@example.com\"}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee/nested",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee", "nested"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Verify Level 2 Modification Persisted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Level 2 property modification persisted\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee.contact.email).to.equal(pm.collectionVariables.get(\"expectedEmail\"));",
+							"});",
+							"",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Modify Level 3 Property (company.contact.address.city)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Modification successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.equal(\"success\");",
+							"    pm.expect(jsonData.employee.company.contact.address.city).to.equal(\"Boston\");",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"expectedCity\", \"Boston\");",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"path\": \"company.contact.address.city\", \"value\": \"Boston\"}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee/nested",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee", "nested"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Verify Level 3 Modification Persisted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Level 3 property modification persisted\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee.company.contact.address.city).to.equal(pm.collectionVariables.get(\"expectedCity\"));",
+							"});",
+							"",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. Modify Multiple Properties",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Salary modification successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.equal(\"success\");",
+							"    pm.expect(jsonData.employee.salary).to.equal(105000);",
+							"});",
+							"",
+							"pm.collectionVariables.set(\"expectedSalary\", 105000);",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"path\": \"salary\", \"value\": 105000}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee/nested",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee", "nested"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. Verify All Modifications Persisted",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"All modifications persisted correctly\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.employee.name).to.equal(pm.collectionVariables.get(\"expectedName\"));",
+							"    pm.expect(jsonData.employee.contact.email).to.equal(pm.collectionVariables.get(\"expectedEmail\"));",
+							"    pm.expect(jsonData.employee.company.contact.address.city).to.equal(pm.collectionVariables.get(\"expectedCity\"));",
+							"    pm.expect(jsonData.employee.salary).to.equal(pm.collectionVariables.get(\"expectedSalary\"));",
+							"});",
+							"",
+							"console.log(\"✅ All nested object modifications persisted successfully!\");",
+							"setTimeout(function(){}, 2000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "SESSION={{sessionCookie}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/session/employee",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "session", "employee"]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "sessionCookie",
+			"value": ""
+		},
+		{
+			"key": "originalName",
+			"value": ""
+		},
+		{
+			"key": "originalEmail",
+			"value": ""
+		},
+		{
+			"key": "originalCity",
+			"value": ""
+		},
+		{
+			"key": "expectedName",
+			"value": ""
+		},
+		{
+			"key": "expectedEmail",
+			"value": ""
+		},
+		{
+			"key": "expectedCity",
+			"value": ""
+		},
+		{
+			"key": "expectedSalary",
+			"value": ""
+		}
+	]
+}
